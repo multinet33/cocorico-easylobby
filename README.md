@@ -52,7 +52,7 @@ désactive d'un clic.
 ## ⚠️ Avertissement
 
 Cocorico EasyLobby est un outil indépendant et gratuit, fourni « tel quel », **sans aucune garantie**. Il n'est ni
-affilié à, ni approuvé, ni soutenu par Activision, Microsoft / Xbox, Sony / PlayStation, Battle.net, Steam, Netduma
+affilié à, ni approuvé, ni soutenu par Activision, Microsoft / Xbox, Sony / PlayStation, Battle.net, Steam
 ou Discord ; Call of Duty et les autres marques citées appartiennent à leurs propriétaires. L'appli ne modifie pas le
 jeu, n'injecte rien dans son processus et ne lit pas sa mémoire : elle agit uniquement sur ton réseau (pare-feu,
 routage, VPN). **Tu l'utilises à tes propres risques**, y compris d'éventuelles sanctions sur ton compte. Dans toute
@@ -80,7 +80,7 @@ the public IP, app health, match summary, connection type…): never a nickname,
 squad code. The exact content is shown in the Guide; can be turned off in one click.
 
 **Disclaimer**: independent, free tool provided “as is”, **without any warranty**. Not affiliated with, endorsed or
-sponsored by Activision, Microsoft / Xbox, Sony / PlayStation, Battle.net, Steam, Netduma or Discord. The app does
+sponsored by Activision, Microsoft / Xbox, Sony / PlayStation, Battle.net, Steam or Discord. The app does
 not modify the game, inject anything or read its memory: it only acts on your network. **You use it at your own
 risk**, including possible account sanctions. To the fullest extent permitted by law, the author shall not be liable
 for any damage arising from its use.
