@@ -22,7 +22,7 @@ Interface en français ou en anglais.
 4. Lance l'appli **avant** Call of Duty.
 
 **Mises à jour** : à partir de la 2.1, l'appli te propose toute seule les nouvelles versions au démarrage (nouveautés
-affichées, installation jeu fermé). Depuis une version plus ancienne : quitte l'appli, remplace le `.exe`, relance-le.
+affichées, installation jeu fermé) ; à partir de la 2.1.3, elle est imposée au 3e lancement sans l'installer. Depuis une version plus ancienne : quitte l'appli, remplace le `.exe`, relance-le.
 Tes réglages, ton historique et tes trophées sont gardés.
 
 ## Activation
@@ -44,8 +44,10 @@ Le détail de chaque version est dans les [notes de version](https://github.com/
 
 ## Vie privée
 
-L'appli envoie des statistiques d'usage **anonymes** à l'auteur (version, fonctions utilisées), chiffrées
-pour lui seul : jamais de pseudo, d'adresse IP, de zone ni de code d'escouade. Désactivable dans le Guide.
+L'appli envoie des statistiques d'usage **anonymes** à l'auteur, chiffrées pour lui seul : version, fonctions utilisées,
+pays et région de l'IP publique, santé de l'appli, résumé de tes parties, type de connexion… Jamais de pseudo, d'adresse
+IP, de ville, de zone, de clé machine ni de code d'escouade. Le détail exact est visible dans le Guide, et l'envoi se
+désactive d'un clic.
 
 ## ⚠️ Avertissement
 
@@ -73,8 +75,9 @@ start (changelog shown, installed with the game closed).
 **Activation**: **7-day trial**. Then send the author your **machine key** (Guide → 🔑 Activation,
 `CCEL-XXXX-XXXX-XXXX-XXXX`) to receive an **activation code** that only works on your PC. Nothing is erased meanwhile.
 
-**Privacy**: anonymous usage statistics (version, features used), encrypted for the author only: never a nickname,
-IP address, zone or squad code. Can be turned off in the Guide.
+**Privacy**: anonymous usage statistics, encrypted for the author only (version, features used, country and region of
+the public IP, app health, match summary, connection type…): never a nickname, IP address, city, zone, machine key or
+squad code. The exact content is shown in the Guide; can be turned off in one click.
 
 **Disclaimer**: independent, free tool provided “as is”, **without any warranty**. Not affiliated with, endorsed or
 sponsored by Activision, Microsoft / Xbox, Sony / PlayStation, Battle.net, Steam, Netduma or Discord. The app does
