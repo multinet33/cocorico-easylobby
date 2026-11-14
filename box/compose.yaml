@@ -1,0 +1,27 @@
+# Cocorico EasyLobby, box (Raspberry Pi 4/5, Odroid, any 64-bit ARM or x86 Linux with Docker).
+# Installed by box/install.sh into /opt/cocobox (one command). By hand: save this file as compose.yaml in a folder,
+# then  docker compose up -d  and open http://<address of the box>:8080 . Network (interface, address, subnet) is detected at start;
+# set LAN_INTERFACE / SERVER_IP / LAN_SUBNET below only if the detection is wrong.
+name: cocorico
+services:
+  easylobby:
+    image: ghcr.io/multinet33/cocorico-easylobby-box:latest
+    container_name: cocorico
+    network_mode: host            # the box is the consoles' gateway
+    privileged: true              # firewall rules (iptables, ipset), WireGuard
+    restart: unless-stopped
+    labels:
+      cocobox.update: nightly        # updated by cocobox-update (03:30-05:30, never during a match)
+    stop_grace_period: 20s
+    environment:
+      WEB_PORT: "8080"
+      EASYLOBBY_TRIAL_FILE: /var/lib/cocorico/trial.json
+      # LAN_INTERFACE: eth0
+      # SERVER_IP: 192.168.1.50
+      # LAN_SUBNET: 192.168.1.0/24
+    volumes:
+      - ./data:/etc/easylobby                         # settings, history, trophies, VPN regions
+      - /var/lib/cocorico:/var/lib/cocorico           # licence (trial start)
+      - /etc/machine-id:/etc/host-machine-id:ro       # licence: identifies this box
+      - /lib/modules:/lib/modules:ro
+      - /etc/localtime:/etc/localtime:ro   # the box's time zone (UTC otherwise: Discord times 1 h off)
