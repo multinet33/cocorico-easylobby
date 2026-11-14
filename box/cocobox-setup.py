@@ -6,9 +6,14 @@
   « CocoBox-XXXX » (like a Ring doorbell). The phone that joins it gets the setup page by itself (captive portal):
   it picks the home Wi-Fi, types its password, the CocoBox joins it and the setup Wi-Fi disappears.
   A cable plugged in meanwhile is enough too: the setup Wi-Fi goes away as soon as there is a network.
+- The machine's network name follows the CocoBox's name (Réglages › Compte, mise en service): « CocoBox-AB12 »
+  -> http://cocobox-ab12.local, « Salon » -> http://salon.local. Only when box/install.sh (or the SD image) owns the
+  name: marker /etc/cocobox/hostname-managed. Same rules as docker/boxname.py (kept in sync by a test).
 Standard library only (python3 of Raspberry Pi OS / Debian).
 """
 import html
+import re
+import unicodedata
 import json
 import os
 import subprocess
@@ -22,6 +27,8 @@ CON = "cocobox-setup"
 AP_IP = "10.42.0.1"                                   # NetworkManager "shared" address
 DNS_CONF = "/etc/NetworkManager/dnsmasq-shared.d/cocobox-captive.conf"
 STATE = "/run/cocobox-setup.json"
+CONF = os.environ.get("COCOBOX_CONF", "/opt/cocobox/data/geofence.json")       # the CocoBox's configuration
+MANAGED = "/etc/cocobox/hostname-managed"
 GRACE = int(os.environ.get("COCOBOX_SETUP_GRACE", "60"))
 COUNTRY = os.environ.get("COCOBOX_COUNTRY", "FR")            # Wi-Fi regulatory country (setup Wi-Fi)
 S = {"mode": "normal", "ssid": "", "scan": [], "error": "", "busy": False}
@@ -49,6 +56,67 @@ def setup_ssid(iface):
     except OSError:
         mac = "0000"
     return "CocoBox-" + mac[-4:]
+
+
+def mac_tail(net="/sys/class/net"):
+    """Same as docker/boxname.py: Wi-Fi card first, then the card of the default route, then the first one."""
+    try:
+        names = sorted(n for n in os.listdir(net) if n != "lo")
+    except OSError:
+        return ""
+    wifi = [n for n in names if os.path.isdir(f"{net}/{n}/wireless")]
+    _, out = sh("ip", "-4", "route", "show", "default", timeout=5)
+    dev = (out.split(" dev ")[1].split()[0] if " dev " in out else "")
+    for n in wifi + ([dev] if dev in names else []) + names:
+        try:
+            mac = open(f"{net}/{n}/address").read().strip().replace(":", "").upper()
+        except OSError:
+            continue
+        if mac and mac.strip("0"):
+            return mac[-4:]
+    return ""
+
+
+def slug(name):
+    """Same as docker/boxname.py: « Salon de Zoé » -> salon-de-zoe."""
+    s = unicodedata.normalize("NFKD", str(name or "")).encode("ascii", "ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+", "-", s).strip("-")[:40].strip("-")
+
+
+def wanted_host():
+    try:
+        with open(CONF) as f:
+            name = str(json.load(f).get("box_name") or "")
+    except (OSError, ValueError):
+        name = ""
+    t = mac_tail()
+    return slug(name) or slug(f"CocoBox-{t}" if t else "CocoBox") or "cocobox"
+
+
+def follow_name():
+    """Rename the machine when the CocoBox was renamed (http://<name>.local)."""
+    if not os.path.exists(MANAGED):
+        return
+    want, now = wanted_host(), os.uname().nodename
+    if want == now:
+        return
+    code, _ = sh("hostnamectl", "set-hostname", want, timeout=15)
+    if code != 0:
+        try:
+            with open("/etc/hostname", "w") as f:
+                f.write(want + "\n")
+            sh("hostname", want, timeout=5)
+        except OSError:
+            return
+    try:
+        with open("/etc/hosts") as f:
+            lines = [l for l in f.read().splitlines() if not l.startswith("127.0.1.1")]
+        with open("/etc/hosts", "w") as f:
+            f.write("\n".join(lines + [f"127.0.1.1\t{want}"]) + "\n")
+    except OSError:
+        pass
+    sh("systemctl", "restart", "avahi-daemon", timeout=20)
+    print(f"[cocobox-setup] nom réseau : {now} -> {want} (http://{want}.local)", flush=True)
 
 
 def online():
@@ -201,9 +269,15 @@ class H(BaseHTTPRequestHandler):
 
 def watch():
     """No network for GRACE seconds -> setup Wi-Fi; a network again (cable, Wi-Fi) -> setup Wi-Fi off."""
-    off_since = None
+    off_since, tick = None, 0
     while True:
         time.sleep(5)
+        tick += 1
+        if tick % 2 == 0 and not S["busy"]:
+            try:
+                follow_name()
+            except Exception as e:                    # never stop the setup Wi-Fi for that
+                print(f"[cocobox-setup] nom réseau : {e}", flush=True)
         if S["busy"] or not IFACE:
             continue
         net = online()

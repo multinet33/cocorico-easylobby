@@ -35,15 +35,13 @@ if command -v apt-get >/dev/null 2>&1; then
     DEBIAN_FRONTEND=noninteractive apt-get install -y -q avahi-daemon qrencode python3 >/dev/null || true
 fi
 CUR="$(hostname)"
-if [ "${COCOBOX_HOSTNAME:-1}" = 1 ] && [ "$CUR" != cocobox ]; then
-    case "$CUR" in raspberrypi|odroid|localhost|debian|ubuntu|"")
-        hostnamectl set-hostname cocobox 2>/dev/null || echo cocobox > /etc/hostname
-        sed -i "s/\b$CUR\b/cocobox/g" /etc/hosts 2>/dev/null || true
-        grep -q cocobox /etc/hosts || echo "127.0.1.1 cocobox" >> /etc/hosts
-        systemctl restart avahi-daemon 2>/dev/null || true ;;
+# network name: cocobox-ab12 (end of the MAC address, like the setup Wi-Fi « CocoBox-AB12 »), then the name the
+# player gives it (Réglages): cocobox-setup renames the machine. Only for a fresh machine's default name.
+if [ "${COCOBOX_HOSTNAME:-1}" = 1 ]; then
+    case "$CUR" in raspberrypi|odroid|localhost|debian|ubuntu|cocobox|cocobox-*|"")
+        mkdir -p /etc/cocobox && touch /etc/cocobox/hostname-managed ;;
     esac
 fi
-NAME="$(hostname)"
 
 say "2/4 · CocoBox"
 mkdir -p "$DIR/data" /var/lib/cocorico
@@ -92,9 +90,14 @@ EOF
 systemctl daemon-reload
 systemctl enable --now cocobox-setup.service
 
+if [ -f /etc/cocobox/hostname-managed ]; then          # cocobox-setup gives the name cocobox-ab12 within seconds
+    for _ in $(seq 1 20); do case "$(hostname)" in cocobox-*) break;; esac; sleep 1; done
+fi
+NAME="$(hostname)"
 IP="$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src") print $(i+1)}')"
 URL="http://$NAME.local"
 say "C'est prêt !"
 echo "  Ouvre sur ton téléphone ou ton PC :  $URL   (ou http://${IP:-adresse-de-la-box}:8080)"
+echo "  Tu peux la renommer dans Réglages › Compte : son adresse suit le nom."
 echo "  La mise en service te guide pour faire passer ta console par la CocoBox."
 command -v qrencode >/dev/null 2>&1 && qrencode -t ansiutf8 -m 2 "$URL" || true
